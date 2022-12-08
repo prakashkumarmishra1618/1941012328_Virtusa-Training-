@@ -1,0 +1,145 @@
+Q.5) Create ReactJs/Angular web project on local system for below mentioned usability.(For Angular Group)
+    Design a login page with username and password as textfields. There will be a submit button and cancel button in that page. Now create a dummy data for valid username and password in the corresponding Javascript/Typescript file. Use Formhandler or FormGroup to validate userbname and password and direct to another page(home.html)
+
+Solution:
+
+app.module.ts -->
+
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+
+import { AppComponent } from './app.component';
+import { RouterModule } from '@angular/router';
+
+@NgModule({
+  imports: [
+    BrowserModule,
+    FormsModule,
+    ReactiveFormsModule,
+    RouterModule.forRoot([]),
+  ],
+  declarations: [AppComponent],
+  bootstrap: [AppComponent],
+})
+export class AppModule {}
+
+
+app.component.ts -->
+
+import { Component } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+
+@Component({
+  selector: 'my-app',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css'],
+})
+export class AppComponent {
+  public loginForm: FormGroup;
+  public submitted = false;
+  public cleared = false;
+
+  constructor(private formBuilder: FormBuilder, private router: Router) {}
+
+  ngOnInit(): void {
+    this.loginForm = this.formBuilder.group({
+      email: ['', [Validators.email, Validators.required]],
+      password: [
+        '',
+        [
+          Validators.required,
+          Validators.pattern(
+            '(?=.*[A-Za-z])(?=.*[0-9])(?=.*[$@$!#^~%*?&,.<>"\'\\;:{\\}\\[\\]\\|\\+\\-\\=\\_\\)\\(\\)\\`\\/\\\\\\]])[A-Za-z0-9d$@].{8,}'
+          ),
+        ],
+      ],
+    });
+  }
+
+  get formControl() {
+    return this.loginForm.controls;
+  }
+
+  onSubmit(): void {
+    this.submitted = true;
+    if (this.loginForm.valid) {
+      console.log(this.loginForm.value);
+      localStorage.setItem('user-Data', JSON.stringify(this.loginForm.value));
+      this.router.navigate(['/home']);
+    }
+  }
+
+  onCancel(): void {
+    this.cleared = true;
+    if (this.loginForm.valid) {
+      console.log(this.loginForm.value);
+      this.loginForm.reset();
+    }
+  }
+}
+
+
+app.component.html -->
+
+<div class="login-form">
+  <div>
+    <h2>Login</h2>
+    <form class="user-login" [formGroup]="loginForm">
+      <div class="row">
+        <div class="col-md-12 mb-3">
+          <label>Email Id</label>
+          <input
+            type="email"
+            class="form-control mb-2"
+            id="inputEmail"
+            formControlName="email"
+            placeholder="Enter Email"
+          />
+          <div
+            *ngIf="submitted && formControl.email.errors"
+            class="text-danger"
+          >
+            <div *ngIf="formControl.email.errors.email">
+              Email must be valid.
+            </div>
+          </div>
+        </div>
+        <div class="col-md-12 roundedTextBox mb-3">
+          <label>Password</label>
+          <input
+            type="password"
+            class="form-control mb-2"
+            id="inputPassword"
+            formControlName="password"
+            placeholder="Enter Password"
+          />
+          <div
+            *ngIf="submitted && formControl.password.errors"
+            class="text-danger"
+          >
+            <div *ngIf="formControl.password.errors.pattern">
+              <ul>
+                <li>Password should be alphanumeric</li>
+                <li>
+                  Password must contain a special character (@, $, !, &, etc)
+                </li>
+                <li>Password length must be greater than 8 characters</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <br />
+      <div class="buttons">
+        <button (click)="onSubmit()" class="btn-submit" type="submit">
+          Submit
+        </button>
+        <button (click)="onCancel()" class="btn-cancel" type="cancel">
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
